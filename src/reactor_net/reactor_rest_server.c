@@ -1,5 +1,8 @@
+#define _GNU_SOURCE
+
 #include <stdint.h>
 #include <string.h>
+#include <netdb.h>
 #include <sys/socket.h>
 
 #include <dynamic.h>
