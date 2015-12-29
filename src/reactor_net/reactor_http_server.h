@@ -55,6 +55,7 @@ int             reactor_http_server_open(reactor_http_server *, char *, char *);
 void            reactor_http_server_event(void *, int, void *);
 void            reactor_http_server_error(reactor_http_server *);
 void            reactor_http_server_close(reactor_http_server *);
+void            reactor_http_server_respond(reactor_http_server_session *, char *, char *, char *, char *, size_t);
 
 void            reactor_http_server_session_init(reactor_http_server_session *, reactor_user_call *, void *);
 int             reactor_http_server_session_open(reactor_http_server_session *, int);

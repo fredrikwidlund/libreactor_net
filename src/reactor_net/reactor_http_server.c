@@ -1,5 +1,6 @@
 #define _GNU_SOURCE
 
+#include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
@@ -166,4 +167,24 @@ void reactor_http_server_session_data(reactor_http_server_session *session, reac
     }
 
   reactor_stream_flush(&session->stream);
+}
+
+void reactor_http_server_respond(reactor_http_server_session *session, char *code, char *message, char *type,
+				 char *body, size_t size)
+{
+  reactor_stream *stream;
+
+  stream = &session->stream;
+
+  reactor_stream_puts(stream, "HTTP/1.1 ");
+  reactor_stream_puts(stream, code);
+  reactor_stream_puts(stream, " ");
+  reactor_stream_puts(stream, message);
+  reactor_stream_puts(stream, "\r\nContent-type: ");
+  reactor_stream_puts(stream, type);
+  reactor_stream_puts(stream, "\r\nContent-Length: ");
+  reactor_stream_putu(stream, size);
+  reactor_stream_puts(stream, "\r\n\r\n");
+
+  reactor_stream_write(stream, body, size);
 }
