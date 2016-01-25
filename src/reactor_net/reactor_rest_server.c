@@ -6,6 +6,7 @@
 #include <sys/socket.h>
 
 #include <dynamic.h>
+#include <clo.h>
 #include <reactor_core.h>
 
 #include "reactor_tcp_server.h"
@@ -19,9 +20,10 @@ void reactor_rest_server_init(reactor_rest_server *server, reactor_user_call *ca
   vector_init(&server->maps, sizeof(reactor_rest_server_map));
 }
 
-int reactor_rest_server_open(reactor_rest_server *server, char *node, char *service)
+int reactor_rest_server_open(reactor_rest_server *server, char *node, char *service,
+                             reactor_rest_server_options *options)
 {
-  return reactor_http_server_open(&server->http_server, node, service);
+  return reactor_http_server_open(&server->http_server, node, service, &options->http_server_options);
 }
 
 void reactor_rest_server_event(void *state, int type, void *data)
@@ -47,7 +49,7 @@ void reactor_rest_server_event(void *state, int type, void *data)
               return;
             }
         }
-      reactor_rest_server_return_not_found((reactor_rest_server_request[]){{.session = session}});
+      reactor_rest_server_respond_error((reactor_rest_server_request[]){{.session = session}}, 404, "not found");
       break;
     case REACTOR_HTTP_SERVER_ERROR:
       reactor_user_dispatch(&server->user, REACTOR_REST_SERVER_ERROR, data);
@@ -68,24 +70,32 @@ int reactor_rest_server_match(reactor_rest_server_map *map, reactor_http_server_
           (!map->path || strcasecmp(map->path, request->path) == 0));
 }
 
-void reactor_rest_server_return(reactor_rest_server_request *request, int code, char *reason, char *content_type, char *body, size_t size)
+void reactor_rest_server_respond(reactor_rest_server_request *request, int code, char *content_type, char *body, size_t size)
 {
-  reactor_stream_printf(&request->session->stream,
-                        "HTTP/1.1 %d %s\r\n"
-                        "Content-Type: %s\r\n"
-                        "Content-Length: %llu\r\n\r\n",
-                        code, reason, content_type, size, body);
-  if (size)
-    reactor_stream_write(&request->session->stream, body, size);
-}
-
-void reactor_rest_server_return_not_found(reactor_rest_server_request *request)
-{
-  char *not_found_body = "{\"status\":\"error\", \"code\":404, \"reason\":\"not found\"}";
-  reactor_rest_server_return(request, 404, "Not Found", "application/json", not_found_body, strlen(not_found_body));
+  reactor_http_server_respond(request->session, code, content_type, body, size);
 }
 
 void reactor_rest_server_respond_text(reactor_rest_server_request *request, char *body)
 {
-  reactor_http_server_respond(request->session, "200", "OK", "text/html", body, strlen(body));
+  reactor_rest_server_respond(request, 200, "text/plain", body, strlen(body));
+}
+
+void reactor_rest_server_respond_clo(reactor_rest_server_request *request, int code, clo *clo)
+{
+  buffer b;
+  int e;
+
+  buffer_init(&b);
+  e = 0;
+  clo_encode(clo, &b, &e);
+  if (e == 0)
+    reactor_rest_server_respond(request, code, "application/json", buffer_data(&b), buffer_size(&b));
+  buffer_clear(&b);
+}
+
+void reactor_rest_server_respond_error(reactor_rest_server_request *request, int code, char *message)
+{
+  reactor_rest_server_respond_clo(request, code, (clo[]) {clo_object({"status", clo_string("error")},
+                                                                     {"code", clo_number(code)},
+                                                                     {"reason", clo_string(message)})});
 }
