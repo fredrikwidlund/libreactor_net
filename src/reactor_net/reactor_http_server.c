@@ -89,7 +89,10 @@ int reactor_http_server_open(reactor_http_server *http_server, char *node, char 
   if (e == -1)
     return -1;
 
-  return reactor_tcp_server_set_defer_accept(&http_server->tcp_server, 1);
+  (void) reactor_tcp_server_set_defer_accept(&http_server->tcp_server, 1);
+  (void) reactor_tcp_server_set_quickack(&http_server->tcp_server, 0);
+
+  return 0;
 }
 
 void reactor_http_server_event(void *state, int type, void *data)
