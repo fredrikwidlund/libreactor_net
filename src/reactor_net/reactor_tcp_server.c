@@ -3,6 +3,7 @@
 #include <unistd.h>
 #include <netdb.h>
 #include <errno.h>
+#include <netinet/tcp.h>
 
 #include <dynamic.h>
 #include <reactor_core.h>
@@ -58,7 +59,7 @@ int reactor_tcp_server_listen(reactor_tcp_server *tcp_server, int fd, struct soc
 
   e = setsockopt(fd, SOL_SOCKET, SO_REUSEADDR, (int[]){1}, sizeof(int));
   if (e == -1)
-   return -1;
+    return -1;
 
   e = bind(fd, sa, sa_len);
   if (e == -1)
@@ -73,6 +74,16 @@ int reactor_tcp_server_listen(reactor_tcp_server *tcp_server, int fd, struct soc
     return -1;
 
   return 0;
+}
+
+int reactor_tcp_server_set_defer_accept(reactor_tcp_server *tcp_server, int wait)
+{
+  return setsockopt(reactor_desc_fd(&tcp_server->desc), IPPROTO_TCP, TCP_DEFER_ACCEPT, (int[]){wait}, sizeof(int));
+}
+
+int reactor_tcp_server_set_quickack(reactor_tcp_server *tcp_server, int enabled)
+{
+  return setsockopt(reactor_desc_fd(&tcp_server->desc), IPPROTO_TCP, TCP_QUICKACK, (int[]){enabled}, sizeof(int));
 }
 
 void reactor_tcp_server_event(void *state, int type, void *data)

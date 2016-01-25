@@ -35,7 +35,10 @@ void reactor_tcp_server_init(reactor_tcp_server *, reactor_user_call *, void *);
 int  reactor_tcp_server_open(reactor_tcp_server *, char *, char *);
 void reactor_tcp_server_event(void *, int, void *);
 int  reactor_tcp_server_listen(reactor_tcp_server *, int, struct sockaddr *, socklen_t);
+int  reactor_tcp_server_set_defer_accept(reactor_tcp_server *, int);
+int  reactor_tcp_server_set_quickack(reactor_tcp_server *, int);
 void reactor_tcp_server_error(reactor_tcp_server *);
 void reactor_tcp_server_close(reactor_tcp_server *);
+
 
 #endif /* REACTOR_TCP_SERVER_H_INCLUDED */
