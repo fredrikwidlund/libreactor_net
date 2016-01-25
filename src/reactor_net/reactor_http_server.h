@@ -13,11 +13,20 @@ enum REACTOR_HTTP_SERVER_EVENT
   REACTOR_HTTP_SERVER_CLOSE   = 0x08
 };
 
+typedef struct reactor_http_server_options reactor_http_server_options;
+struct reactor_http_server_options
+{
+  char                           *name;
+};
+
 typedef struct reactor_http_server reactor_http_server;
 struct reactor_http_server
 {
   reactor_user                    user;
   reactor_tcp_server              tcp_server;
+  reactor_timer                   date_update;
+  char                            date[32];
+  char                           *name;
 };
 
 typedef struct reactor_http_header_field reactor_http_header_field;
@@ -49,16 +58,14 @@ struct reactor_http_server_session
   reactor_http_server_request     request;
 };
 
-
 void            reactor_http_server_init(reactor_http_server *, reactor_user_call *, void *);
-int             reactor_http_server_open(reactor_http_server *, char *, char *);
+int             reactor_http_server_open(reactor_http_server *, char *, char *, reactor_http_server_options *);
 void            reactor_http_server_event(void *, int, void *);
 void            reactor_http_server_error(reactor_http_server *);
 void            reactor_http_server_close(reactor_http_server *);
-void            reactor_http_server_respond(reactor_http_server_session *, char *, char *, char *, char *, size_t);
-
-void            reactor_http_server_session_init(reactor_http_server_session *, reactor_user_call *, void *);
-int             reactor_http_server_session_open(reactor_http_server_session *, int);
+void            reactor_http_server_respond(reactor_http_server_session *, unsigned, char *, char *, size_t);
+void            reactor_http_server_date_event(void *, int, void *);
+void            reactor_http_server_date_update(reactor_http_server *);
 void            reactor_http_server_session_event(void *, int, void *);
 void            reactor_http_server_session_data(reactor_http_server_session *, reactor_stream_data *);
 
