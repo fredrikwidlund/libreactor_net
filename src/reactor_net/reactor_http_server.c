@@ -180,7 +180,7 @@ void reactor_http_server_respond(reactor_http_server_session *session, unsigned 
   reactor_stream_putu(stream, size);
   if (size)
     {
-      reactor_stream_puts(stream, "\r\nContent-type: ");
+      reactor_stream_puts(stream, "\r\nContent-Type: ");
       reactor_stream_puts(stream, type);
     }
   reactor_stream_puts(stream, "\r\n\r\n");
