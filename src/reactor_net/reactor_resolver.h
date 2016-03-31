@@ -19,7 +19,9 @@ struct reactor_resolver
   int                        state;
   reactor_user               user;
   reactor_signal_dispatcher  dispatcher;
+  struct addrinfo            hints;
   struct gaicb               gaicb;
+  struct sigevent            sigev;
 };
 
 void reactor_resolver_init(reactor_resolver *, reactor_user_call *, void *);
